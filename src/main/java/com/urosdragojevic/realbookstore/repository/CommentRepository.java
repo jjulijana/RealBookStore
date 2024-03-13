@@ -4,6 +4,7 @@ import com.urosdragojevic.realbookstore.domain.Comment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -43,7 +44,8 @@ public class CommentRepository {
         ) {
             statement.setInt(1, comment.getBookId());
             statement.setInt(2, comment.getUserId());
-            statement.setString(3, comment.getComment());
+            String sanitizedComment = HtmlUtils.htmlEscape(comment.getComment());
+            statement.setString(3, sanitizedComment);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
