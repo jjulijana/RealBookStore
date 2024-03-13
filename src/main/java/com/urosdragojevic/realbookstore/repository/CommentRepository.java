@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,12 +23,11 @@ public class CommentRepository {
     }
 
     public void create(Comment comment) {
-        String query = "insert into comments(bookId, userId, comment) values (" + comment.getBookId() + ", " + comment.getUserId() + ", '" + comment.getComment() + "')";
+        String query = "insert into comments(bookId, userId, comment) values ( ? , ? , ? )";
 
         // When a user submits a comment, the comment is inserted into the database without any validation or sanitization.
         // This allows for SQL injection and XSS attacks.
         // Test the application by submitting the following comments on http://localhost:8080/books/{id}:
-
 
         // SQL injection
         // We can see that the query is constructed by concatenating strings, which is a bad practice.
@@ -42,11 +38,13 @@ public class CommentRepository {
         // Picture source doesn't exist, but onerror is triggered and we get an alert with the cookie.
         // komentar'); insert into persons(firstName, lastName, email) values ('Julijana', 'Jevtic', '<img src="neki.jpg" onerror="alert(document.cookie);">'); --
 
-
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement();
+             PreparedStatement statement = connection.prepareStatement(query);
         ) {
-            statement.execute(query);
+            statement.setInt(1, comment.getBookId());
+            statement.setInt(2, comment.getUserId());
+            statement.setString(3, comment.getComment());
+            statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
