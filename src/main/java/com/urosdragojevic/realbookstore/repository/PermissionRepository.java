@@ -1,5 +1,6 @@
 package com.urosdragojevic.realbookstore.repository;
 
+import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import java.util.List;
 public class PermissionRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(PermissionRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(BookRepository.class);
 
     private final DataSource dataSource;
 
@@ -37,7 +39,9 @@ public class PermissionRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            LOG.warn("Error while fetching permissions for role with id: " + roleId);
         }
+        auditLogger.audit("Fetching permissions for role with id: " + roleId);
         return permissions;
     }
 }

@@ -1,5 +1,6 @@
 package com.urosdragojevic.realbookstore.repository;
 
+import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.Rating;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,8 @@ import java.util.List;
 public class RatingRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(RatingRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(PersonRepository.class);
+
     private DataSource dataSource;
 
     public RatingRepository(DataSource dataSource) {
@@ -36,6 +39,11 @@ public class RatingRepository {
                     preparedStatement.setInt(3, rating.getUserId());
                     preparedStatement.executeUpdate();
                 }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                    LOG.warn("Error while updating rating");
+                }
+                auditLogger.audit("Updated rating");
             } else {
                 try (PreparedStatement preparedStatement = connection.prepareStatement(query3)) {
                     preparedStatement.setInt(1, rating.getBookId());
@@ -43,10 +51,17 @@ public class RatingRepository {
                     preparedStatement.setInt(3, rating.getRating());
                     preparedStatement.executeUpdate();
                 }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                    LOG.warn("Error while inserting rating");
+                }
+                auditLogger.audit("Inserted rating");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            LOG.warn("Error while checking if rating exists");
         }
+        auditLogger.audit("Checked if rating exists");
     }
 
     public List<Rating> getAll(int bookId) {
@@ -60,7 +75,9 @@ public class RatingRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            LOG.warn("Error while getting all ratings");
         }
+        auditLogger.audit("Got all ratings");
         return ratingList;
     }
 
